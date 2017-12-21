@@ -31,11 +31,10 @@ public class FixedCapacityTreeHashTable<K extends Comparable<K>,V> extends Abstr
     @SuppressWarnings({"unchecked"})
     public boolean containsValue(Object value) {
         final V casted = (V) value;
-        return this.entrySet().stream().anyMatch(entry -> value.equals(entry.getValue()));
-//        for(HashTree<K,V> tree: trees){
-//            if(tree.containsValue(casted)) return true;
-//        }
-//        return false;
+        for(HashTree<K,V> tree: trees){
+            if(tree.containsValue(casted)) return true;
+        }
+        return false;
     }
 
     @Override
@@ -52,7 +51,9 @@ public class FixedCapacityTreeHashTable<K extends Comparable<K>,V> extends Abstr
 
     @Override
     public V put(K key, V value) {
-        return putIfAbsent(key, value);
+        final V old =  putIfAbsent(key, value);
+        if(old != null) trees.get(getTreeNumber(key)).insert(key,value);
+        return old;
     }
 
     @Override
@@ -115,7 +116,7 @@ public class FixedCapacityTreeHashTable<K extends Comparable<K>,V> extends Abstr
 
     @Override
     public void replaceAll(BiFunction<? super K, ? super V, ? extends V> function) {
-
+        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -125,8 +126,8 @@ public class FixedCapacityTreeHashTable<K extends Comparable<K>,V> extends Abstr
         if (old == null) {
             this.size++;
             trees.get(getTreeNumber(key)).insert(key, value);
+            return null;
         }
-        if (old != null) trees.get(getTreeNumber(key)).find(key).setValue(value);
         return old;
     }
 
@@ -193,23 +194,18 @@ public class FixedCapacityTreeHashTable<K extends Comparable<K>,V> extends Abstr
 
         @Override
         public boolean hasNext() {
-            return ai.hasNext() && treeIterator.hasNext();
+            while (!treeIterator.hasNext()) {
+                if (!ai.hasNext()) return false;
+                treeIterator = ai.next().iterator();
+            }
+            return treeIterator.hasNext();
         }
 
         @Override
         public Entry<K, V> next() {
-//            while(!treeIterator.hasNext()){
-//                if(!ai.hasNext()) throw new NoSuchElementException("No more elements in map!");
-//                else treeIterator = ai.next().iterator();
-//            }
-//            if(treeIterator.hasNext()){
-//                HashTree.TreeHashMapNode<K,V> node = treeIterator.next();
-//                return new SimpleImmutableEntry<>(node.getKey(),node.getValue());
-//            }
-//            else throw new NoSuchElementException();
             while (!treeIterator.hasNext()) {
+                if (!ai.hasNext()) throw new NoSuchElementException();
                 treeIterator = ai.next().iterator();
-                if(treeIterator.hasNext()) break;
             }
             if(treeIterator.hasNext()) {
                 HashTree.TreeHashMapNode<K,V> next = treeIterator.next();

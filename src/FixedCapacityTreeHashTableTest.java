@@ -7,9 +7,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 class FixedCapacityTreeHashTableTest {
 
@@ -59,6 +57,19 @@ class FixedCapacityTreeHashTableTest {
         controlMap.forEach((k,v) -> assertTrue(testMap.containsValue(v))); //containsValue
         assertEquals(testMap.remove("key1"),"value1"); //remove
         assertEquals(testMap.size(), controlMap.size() - 1);
+        controlMap.remove("key1");
+        assertEquals(testMap.keySet(),controlMap.keySet());  //keySet
+        assertTrue(testMap.values().containsAll(controlMap.values())); //values
+        assertTrue(controlMap.values().containsAll(testMap.values()));
+        assertEquals(testMap.replace("key9","nine"),"value9"); //replace
+        assertEquals(testMap.get("key9"),"nine");
+        assertFalse(testMap.replace("key9","noSuchValue","burp"));
+        assertTrue(testMap.replace("key9","nine","newValue"));
+        assertEquals(testMap.get("key9"),"newValue");
+        assertEquals(testMap.putIfAbsent("key3","newValueFor3"),"value3"); //putIfAbsent
+        assertEquals(testMap.get("key3"), "value3");
+        assertNull(testMap.putIfAbsent("newKey","value"));
+        assertEquals(testMap.get("newKey"),"value");
     }
 
 }

@@ -12,6 +12,7 @@ class HashTreeTest {
         tree.insert(1,"one");
         tree.remove(5);
         tree.remove(1);
+        tree.forEach((i,s) -> System.out.println(i + " -> " + s));
         assertEquals(tree.find(6).getValue(),"six");
     }
 }

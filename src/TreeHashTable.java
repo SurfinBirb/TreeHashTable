@@ -8,7 +8,7 @@ import java.util.function.Function;
 
 public class TreeHashTable<K extends Comparable<K>,V> extends AbstractMap<K,V> implements Map<K,V> {
     private int size;
-    private final int capacity;
+    private int capacity;
     private final float loadFactor;
     private HashTree<K,V>[] trees;
 
@@ -107,6 +107,11 @@ public class TreeHashTable<K extends Comparable<K>,V> extends AbstractMap<K,V> i
 
     public float loadFactor(){
         return this.loadFactor;
+    }
+
+
+    int tableSizeFor(int cap) {
+        return 0;
     }
 
 }

@@ -1,4 +1,8 @@
+import java.util.ArrayDeque;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 public class HashTree<K extends Comparable<K>,V> {
     private TreeHashMapNode<K,V> root;
@@ -11,6 +15,11 @@ public class HashTree<K extends Comparable<K>,V> {
         this.root = root;
     }
 
+    public void forEach(BiConsumer<? super K, ? super V> action){
+        if(action == null) throw new NullPointerException();
+        this.iterator().forEachRemaining((node) -> action.accept(node.getKey(), node.getValue()));
+    }
+
     public void insert(K key, V value){
         root = insert(root, key, value);
     }
@@ -19,8 +28,22 @@ public class HashTree<K extends Comparable<K>,V> {
         root = remove(root,key);
     }
 
+    public void clear(){
+        root = null;
+    }
+
     public TreeHashMapNode<K,V> find(K key){
         return findNode(root,key);
+    }
+
+    public boolean containsValue(V value){
+        Iterator<TreeHashMapNode<K,V>> it =  this.iterator();
+        TreeHashMapNode<K,V> node = null;
+        while (it.hasNext()){
+            node = it.next();
+            if(node.value == value) return true;
+        }
+        return false;
     }
 
     @SuppressWarnings({"rawtypes","unchecked"})
@@ -133,6 +156,44 @@ public class HashTree<K extends Comparable<K>,V> {
         return node;
     }
 
+    public Iterator<TreeHashMapNode<K,V>> iterator(){
+        return new HashTreeNodeIterator(this.root);
+    }
+
+    class HashTreeNodeIterator implements Iterator<TreeHashMapNode<K,V>>{
+
+        private ArrayDeque<TreeHashMapNode<K,V>> deque;
+        private  TreeHashMapNode<K,V> current;
+
+        HashTreeNodeIterator(TreeHashMapNode<K,V> root){
+            this.deque = new ArrayDeque<>();
+            this.current = root;
+        }
+
+        @Override
+        public boolean hasNext() {
+            return !deque.isEmpty() || current != null;
+        }
+
+        @Override
+        public TreeHashMapNode<K, V> next() {
+            while(current != null){
+                deque.addLast(current);
+                current = current.left;
+            }
+            current = deque.pollLast();
+            final TreeHashMapNode<K,V> next = current;
+            current = current.right;
+            return next;
+        }
+
+        @Override
+        public void forEachRemaining(Consumer<? super TreeHashMapNode<K, V>> action) {
+            if(action == null) throw new NullPointerException();
+            while (this.hasNext()) action.accept(this.next());
+        }
+    }
+
     public static class TreeHashMapNode<K extends Comparable<K>,V> implements Map.Entry<K, V> {
         int hash;
         final K key;
@@ -167,8 +228,11 @@ public class HashTree<K extends Comparable<K>,V> {
         }
 
         @Override
+        @SuppressWarnings({"unchecked"})
         public boolean equals(Object o) {
-            return false;
+            if (!this.getClass().equals(o.getClass())) return false;
+            HashTree.TreeHashMapNode<K,V> other = (HashTree.TreeHashMapNode<K,V>) o;
+            return key.equals(other.key) && value.equals(other.value);
         }
 
         @Override
